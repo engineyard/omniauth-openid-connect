@@ -161,10 +161,30 @@ class OmniAuth::Strategies::OpenIDConnect
                            :client_auth_method => options.client_auth_method
                          )
                          _id_token = ::OpenIDConnect::ResponseObject::IdToken.decode(_access_token.id_token, public_key)
+
+                         nonce = stored_nonce
+
+                         OmniAuth.logger.info {
+                           expected_slug = {
+                             :issuer => options.issuer,
+                             :aud    => [client_options.identifier],
+                             :nonce  => nonce,
+                             :exp    => Time.now,
+                           }
+                           actual_slug = {
+                             :issuer => _id_token.iss,
+                             :aud    => _id_token.aud,
+                             :nonce  => _id_token.nonce,
+                             :exp    => _id_token.exp,
+                           }
+
+                           "Verifying ID Token : expected:#{expected_slug.inspect} actual:#{actual_slug.inspect}"
+                         }
+
                          _id_token.verify!(
                            :issuer    => options.issuer,
                            :client_id => client_options.identifier,
-                           :nonce     => stored_nonce,
+                           :nonce     => nonce,
                          )
                          _access_token.id_token = _id_token
                          _access_token
