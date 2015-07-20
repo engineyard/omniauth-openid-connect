@@ -184,7 +184,7 @@ class OmniAuth::Strategies::OpenIDConnect
   end
 
   def new_nonce
-    session['omniauth.nonce'] = SecureRandom.hex(16)
+    session['omniauth.nonce'] = (options.nonce.respond_to?(:call) ? options.nonce.call : SecureRandom.hex(16))
   end
 
   def stored_nonce
